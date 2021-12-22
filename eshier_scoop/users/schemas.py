@@ -3,12 +3,11 @@ from pydantic import BaseModel
 
 
 class s_users(BaseModel):
-    first_name: str
-    last_name: str
+    first_name: str = None
+    last_name: str = None
+    phone_number: str = None
     email: str
     password: str
-    phone_number: str
-    profil_pic: str = None
 
     @classmethod
     def as_form(
@@ -18,7 +17,14 @@ class s_users(BaseModel):
             email: str = Form(...),
             password: str = Form(...),
             phone_number: str = Form(...),
-            profil_pic: str = Form(default=None),
     ):
         return cls(first_name=first_name, password=password, last_name=last_name,
-                   email=email, phone_number=phone_number, profil_pic=profil_pic)
+                   email=email, phone_number=phone_number)
+
+    @classmethod
+    def as_login(
+            cls,
+            email: str = Form(...),
+            password: str = Form(...),
+    ):
+        return cls(password=password, email=email)
