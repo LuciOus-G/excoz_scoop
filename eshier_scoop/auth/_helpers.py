@@ -1,7 +1,7 @@
 import os
 import scrypt
 from binascii import hexlify, unhexlify
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic
 from passlib.context import CryptContext
 from fastapi import Request
 import jwt

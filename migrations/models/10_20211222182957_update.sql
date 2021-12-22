@@ -1,0 +1,30 @@
+-- upgrade --
+ALTER TABLE "core_organizations" ADD "org_logo" VARCHAR(1000) NOT NULL;
+ALTER TABLE "core_organizations" ADD "org_type" VARCHAR(1000) NOT NULL;
+ALTER TABLE "core_organizations" ADD "max_user" INT NOT NULL  DEFAULT 0;
+ALTER TABLE "core_organizations" ALTER COLUMN "created" SET DEFAULT '2021-12-22 11:29:56.480344';
+ALTER TABLE "core_organizations" ALTER COLUMN "modified" SET DEFAULT '2021-12-22 11:29:56.480344';
+ALTER TABLE "glob_users" ALTER COLUMN "created" SET DEFAULT '2021-12-22 11:29:56.480344';
+ALTER TABLE "glob_users" ALTER COLUMN "modified" SET DEFAULT '2021-12-22 11:29:56.480344';
+ALTER TABLE "glob_users" ALTER COLUMN "last_login" SET DEFAULT '2021-12-22 18:29:56.484355';
+ALTER TABLE "core_orders" ADD "order_number" INT NOT NULL UNIQUE;
+ALTER TABLE "core_orders" ADD "client_scoop" INT NOT NULL;
+ALTER TABLE "core_orders" ADD "is_complete" BOOL NOT NULL  DEFAULT False;
+ALTER TABLE "core_orders" ADD "purchase_type" INT NOT NULL;
+ALTER TABLE "core_orders" ALTER COLUMN "modified" SET DEFAULT '2021-12-22 11:29:56.480344';
+ALTER TABLE "core_orders" ALTER COLUMN "created" SET DEFAULT '2021-12-22 11:29:56.480344';
+-- downgrade --
+ALTER TABLE "glob_users" ALTER COLUMN "created" SET DEFAULT '2021-12-21 19:04:50.115210';
+ALTER TABLE "glob_users" ALTER COLUMN "modified" SET DEFAULT '2021-12-21 19:04:50.115210';
+ALTER TABLE "glob_users" ALTER COLUMN "last_login" SET DEFAULT '2021-12-22 02:04:50.118208';
+ALTER TABLE "core_orders" DROP COLUMN "order_number";
+ALTER TABLE "core_orders" DROP COLUMN "client_scoop";
+ALTER TABLE "core_orders" DROP COLUMN "is_complete";
+ALTER TABLE "core_orders" DROP COLUMN "purchase_type";
+ALTER TABLE "core_orders" ALTER COLUMN "modified" SET DEFAULT '2021-12-21 19:04:50.115210';
+ALTER TABLE "core_orders" ALTER COLUMN "created" SET DEFAULT '2021-12-21 19:04:50.115210';
+ALTER TABLE "core_organizations" DROP COLUMN "org_logo";
+ALTER TABLE "core_organizations" DROP COLUMN "org_type";
+ALTER TABLE "core_organizations" DROP COLUMN "max_user";
+ALTER TABLE "core_organizations" ALTER COLUMN "created" SET DEFAULT '2021-12-21 19:04:50.115210';
+ALTER TABLE "core_organizations" ALTER COLUMN "modified" SET DEFAULT '2021-12-21 19:04:50.115210';
