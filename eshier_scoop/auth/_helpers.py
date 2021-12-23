@@ -1,15 +1,25 @@
 import os
+import string
+import random
+
 import scrypt
 from binascii import hexlify, unhexlify
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, HTTPBasic
 from passlib.context import CryptContext
 from fastapi import Request
 import jwt
-from fastapi import HTTPException, Security
+from fastapi import HTTPException, Security, UploadFile
+
+from eshier_scoop.organizations.models import Organizations
 from eshier_scoop.users.models import Users, User_organization
 from datetime import datetime, timedelta
+import shutil
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 
+from eshier_scoop.utils import settings
 from eshier_scoop.utils.error_handling import Unauthorized
+from eshier_scoop.helpers.google_drive import google
 
 
 class authHandler(object):
@@ -77,4 +87,52 @@ class authHandler(object):
         user_queries = await Users.get(id=user_id)
         g.cur_user = user_queries
 
+class registerFlow(google):
+    def __init__(self, photo_file):
+        self.ORG_INSTANCE = None
+        self.PREFIX_LEN = 3
+        self.PREFIX = None
+        self.FOLDER_ID = None
+        self.FILES_PHOTO = photo_file
+        self.NEW_FILE = None
+        super().__init__()
 
+    async def create_organization(self, org_name, org_type):
+        while True:
+            try:
+                #make organization ready
+                new_organization = await Organizations(
+                    name=org_name,
+                    org_type=org_type,
+                    prefix=self.generate_prefix()
+                )
+                await new_organization.save()  # must save first to get id
+                self.ORG_INSTANCE = new_organization
+                await self.set_folder_id()
+                await self.upload_photo()
+                break
+            except Exception as e:
+                self.PREFIX_LEN += 1
+                continue
+
+    async def set_folder_id(self):
+        folder_id = await self.create_folder_second(self.ORG_INSTANCE.id)
+        self.ORG_INSTANCE.folder_id = folder_id
+        self.FOLDER_ID = folder_id
+        await self.ORG_INSTANCE.save()
+
+    async def upload_photo(self):
+        # upload organization logo if any
+        if self.FILES_PHOTO != settings.DEFAULT_PIC:
+            await self.set_organization(self.ORG_INSTANCE)
+            temp_image = await self.save_file(self.FILES_PHOTO)
+            upload_file = await self.upload_file(temp_image)
+            self.NEW_FILE = settings.EMBED_GOOGLE_DRIVE_IMAGE_LINK(upload_file)
+
+
+        self.ORG_INSTANCE.org_logo = self.NEW_FILE
+        await self.ORG_INSTANCE.save()  # save again to input folder id
+
+    def generate_prefix(self):
+        prefix = ''.join(random.choice(string.ascii_uppercase) for i in range(self.PREFIX_LEN))
+        return prefix

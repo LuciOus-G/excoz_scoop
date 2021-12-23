@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import Form, File
+from fastapi import Form, File, UploadFile
 from pydantic import BaseModel
 
 from eshier_scoop.utils import settings
@@ -14,7 +14,7 @@ class s_register(BaseModel):
     password: str
     organization_name: str
     organization_type: str
-    organization_logo: str = None
+    organization_logo: UploadFile = None
 
     @classmethod
     def as_form(
@@ -26,7 +26,7 @@ class s_register(BaseModel):
             phone_number: str = Form(...),
             organization_name: str = Form(...),
             organization_type: str = Form(...),
-            organization_logo: str = File(default=settings.DEFAULT_PIC)
+            organization_logo: UploadFile = File(default=settings.DEFAULT_PIC)
     ):
         return cls(first_name=first_name, password=password, last_name=last_name,
                    email=email, phone_number=phone_number, organization_name=organization_name,

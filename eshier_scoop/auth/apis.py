@@ -3,11 +3,12 @@ from fastapi.encoders import jsonable_encoder as jsonify
 from binascii import hexlify
 import hashlib
 import os
-
+from pathlib import Path
+from strgen import StringGenerator as SG
 from eshier_scoop.users.schemas import s_register, s_login
 from eshier_scoop.users.models import Users, User_organization
 # from core import db
-from ._helpers import authHandler
+from ._helpers import authHandler, registerFlow
 from eshier_scoop.utils import settings
 from ..helpers.google_drive import google
 from ..organizations.models import Organizations
@@ -39,6 +40,7 @@ async def login(request: Request, cred=Depends(s_login)):
 
 @auth_r.post('/register')
 async def register(request: Request, users_data=Depends(s_register.as_form)):
+    pref_len: int = 3
     salt = hexlify(authHandler().salt_generator()) # len [:128]
     hash_password = authHandler().hashes_password(salt, users_data.password) # len [128:]
 
@@ -53,29 +55,21 @@ async def register(request: Request, users_data=Depends(s_register.as_form)):
     )
 
     if new_user:
-        try:
-            await new_user.save()
+        # try:
+        await new_user.save()
+        register_handler = registerFlow(users_data.organization_logo)
+        await register_handler.create_organization(
+            org_name=users_data.organization_name,
+            org_type=users_data.organization_type
+        )
 
-            # make organization ready
-            new_organization = await Organizations(
-                name=users_data.organization_name,
-                org_logo=users_data.organization_logo,
-                org_type=users_data.organization_type,
-                folder_id=''
-            )
-            await new_organization.save() # must save first to get id
-
-            # set folder id base on new_organization ids
-            new_organization.folder_id = await google().create_folder_second(new_organization.id)
-            await new_organization.save() # save again to input folder id
-
-            # make relation of user and organization
-            relation_user_org = User_organization(
-                user_id=new_user.id,
-                organization_id=new_organization.id
-            )
-            await relation_user_org.save()
-        except Exception as e:
-            print(e)
-            return jsonify({"message": "user already exists with this email"})
+        # make relation of user and organization
+        relation_user_org = User_organization(
+            user_id=new_user.id,
+            organization_id=register_handler.ORG_INSTANCE.id
+        )
+        await relation_user_org.save()
+        # except Exception as e:
+        #     print(e)
+        #     return jsonify({"message": "user already exists with this email"})
     return new_user

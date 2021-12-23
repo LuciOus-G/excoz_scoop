@@ -57,6 +57,7 @@ six==1.16.0
 sniffio==1.2.0
 SQLAlchemy==1.4.28
 starlette==0.13.6
+StringGenerator==0.4.4
 tomlkit==0.8.0
 tortoise-orm==0.17.8
 typing-extensions==4.0.1

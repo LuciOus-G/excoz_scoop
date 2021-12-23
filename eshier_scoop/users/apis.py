@@ -25,14 +25,9 @@ async def get_user(request: Request):
 async def test():
     from core import BASE_DIR
     import os
-    new_organization = await Organizations(
-        name='users_data.organization_name',
-        org_logo='users_data.organization_logo',
-        org_type='users_data.organization_type',
-        folder_id=''
-    )
-    await new_organization.save()
-    print(new_organization.id)
-    new_organization.folder_id='oajsmdo'
-    await new_organization.save()
-    return new_organization
+    handler = google()
+    # await handler.get_organization(7)
+    # upload = handler.upload_file('temp_image/README.md', 'test.md')
+    folder = await handler.create_folder('ini')
+    print(handler.get_files_list())
+    return folder

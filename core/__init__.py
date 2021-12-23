@@ -1,5 +1,5 @@
 """
-SCOOP PLATFORM ID = W_ESHIER 21
+SCOOP PLATFORM ID = E_ESHIER : 21
 """
 from fastapi import FastAPI, Request, Response
 from tortoise.contrib.fastapi import register_tortoise

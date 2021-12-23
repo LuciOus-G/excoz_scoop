@@ -1,10 +1,6 @@
-from functools import wraps
 from string import Template
 from urllib.parse import quote_plus
-
-from eshier_scoop.auth._helpers import authHandler
 from eshier_scoop.helpers import *
-from fastapi import Request
 
 from pydantic import BaseSettings
 
@@ -20,6 +16,7 @@ class config(BaseSettings):
     )
     DEFAULT_PIC = 'https://firebasestorage.googleapis.com/v0/b/worka-eshier.appspot.com/o/default_profil_pic.jpg?alt=media&token=80eca9c8-4a81-4fd1-a6c2-8d23ea87670e'
     PARENT_FOLDER = '1PeXecAsXj5glqn3BOfDeMaxdRrLrS-xy'
+    EMBED_GOOGLE_DRIVE_IMAGE_LINK = lambda self, gdrive_id: f"""https://drive.google.com/uc?export=download&id={str(gdrive_id['id'])}"""
 
 settings = config()
 
