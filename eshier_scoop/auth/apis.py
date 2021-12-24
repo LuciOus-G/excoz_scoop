@@ -40,7 +40,6 @@ async def login(request: Request, cred=Depends(s_login)):
 
 @auth_r.post('/register')
 async def register(request: Request, users_data=Depends(s_register.as_form)):
-    pref_len: int = 3
     salt = hexlify(authHandler().salt_generator()) # len [:128]
     hash_password = authHandler().hashes_password(salt, users_data.password) # len [128:]
 
@@ -55,21 +54,21 @@ async def register(request: Request, users_data=Depends(s_register.as_form)):
     )
 
     if new_user:
-        # try:
-        await new_user.save()
-        register_handler = registerFlow(users_data.organization_logo)
-        await register_handler.create_organization(
-            org_name=users_data.organization_name,
-            org_type=users_data.organization_type
-        )
+        try:
+            await new_user.save()
+            register_handler = registerFlow(users_data.organization_logo)
+            await register_handler.create_organization(
+                org_name=users_data.organization_name,
+                org_type=users_data.organization_type
+            )
 
-        # make relation of user and organization
-        relation_user_org = User_organization(
-            user_id=new_user.id,
-            organization_id=register_handler.ORG_INSTANCE.id
-        )
-        await relation_user_org.save()
-        # except Exception as e:
-        #     print(e)
-        #     return jsonify({"message": "user already exists with this email"})
+            # make relation of user and organization
+            relation_user_org = User_organization(
+                user_id=new_user.id,
+                organization_id=register_handler.ORG_INSTANCE.id
+            )
+            await relation_user_org.save()
+        except Exception as e:
+            print(e)
+            return jsonify({"message": "user already exists with this email"})
     return new_user

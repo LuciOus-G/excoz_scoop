@@ -26,7 +26,7 @@ class s_register(BaseModel):
             phone_number: str = Form(...),
             organization_name: str = Form(...),
             organization_type: str = Form(...),
-            organization_logo: UploadFile = File(default=settings.DEFAULT_PIC)
+            organization_logo: UploadFile = File(default=None)
     ):
         return cls(first_name=first_name, password=password, last_name=last_name,
                    email=email, phone_number=phone_number, organization_name=organization_name,
