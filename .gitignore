@@ -10,6 +10,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
+temp_image/
 dist/
 downloads/
 eggs/
@@ -112,7 +113,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-.storage.json
+*.txt
 
 # Pyre type checker
 .pyre/
