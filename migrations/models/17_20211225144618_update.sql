@@ -1,0 +1,20 @@
+-- upgrade --
+ALTER TABLE "core_organizations" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 07:46:16.919126';
+ALTER TABLE "core_organizations" ALTER COLUMN "created" SET DEFAULT '2021-12-25 07:46:16.919126';
+ALTER TABLE "glob_users" ADD "has_organization" BOOL   DEFAULT True;
+ALTER TABLE "glob_users" ADD "error_message" TEXT;
+ALTER TABLE "glob_users" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 07:46:16.919126';
+ALTER TABLE "glob_users" ALTER COLUMN "created" SET DEFAULT '2021-12-25 07:46:16.919126';
+ALTER TABLE "glob_users" ALTER COLUMN "last_login" SET DEFAULT '2021-12-25 14:46:16.925110';
+ALTER TABLE "core_orders" ALTER COLUMN "created" SET DEFAULT '2021-12-25 07:46:16.919126';
+ALTER TABLE "core_orders" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 07:46:16.919126';
+-- downgrade --
+ALTER TABLE "glob_users" DROP COLUMN "has_organization";
+ALTER TABLE "glob_users" DROP COLUMN "error_message";
+ALTER TABLE "glob_users" ALTER COLUMN "modified" SET DEFAULT '2021-12-24 10:11:12.668403';
+ALTER TABLE "glob_users" ALTER COLUMN "created" SET DEFAULT '2021-12-24 10:11:12.668403';
+ALTER TABLE "glob_users" ALTER COLUMN "last_login" SET DEFAULT '2021-12-24 17:11:12.671402';
+ALTER TABLE "core_orders" ALTER COLUMN "created" SET DEFAULT '2021-12-24 10:11:12.668403';
+ALTER TABLE "core_orders" ALTER COLUMN "modified" SET DEFAULT '2021-12-24 10:11:12.668403';
+ALTER TABLE "core_organizations" ALTER COLUMN "modified" SET DEFAULT '2021-12-24 10:11:12.668403';
+ALTER TABLE "core_organizations" ALTER COLUMN "created" SET DEFAULT '2021-12-24 10:11:12.668403';

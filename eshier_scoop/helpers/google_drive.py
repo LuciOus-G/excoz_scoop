@@ -1,30 +1,34 @@
-import inspect
-import mimetypes
 import random
-import shutil
 import string
-from pathlib import Path
-from tempfile import NamedTemporaryFile
 import os
 from core import BASE_DIR
 
 from fastapi import UploadFile
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
+from core import BASE_DIR
+import os
+from fastapi_cloud_drives import GoogleDrive as GD
+from fastapi_cloud_drives import GoogleDriveConfig
 
 from eshier_scoop.organizations.models import Organizations
+
+class CustomGoogleDriveCloud(GD):
+    def set_custom_path(self, path):
+        self.STORAGE_JSON = path
 
 class google(object):
     def __init__(self):
         self.GAUTH = None
         self.ORG = None
         self.FOLDER = None
+        self.JSON_STORAGE = lambda filename: os.path.join(BASE_DIR.parents[0], f'cloudstorage/{filename}')
         self.initiate()
 
     def initiate(self):
         gauth = GoogleAuth()
         # Try to load saved client credentials
-        gauth.LoadCredentialsFile("storage.json")
+        gauth.LoadCredentialsFile(self.JSON_STORAGE('storage.json'))
         if gauth.credentials is None:
             # Authenticate if they're not there
             gauth.LocalWebserverAuth()
@@ -74,20 +78,16 @@ class google(object):
         return newFolder
 
     async def create_folder_second(self, org_id):
-        from core import BASE_DIR
-        import os
-        from fastapi_cloud_drives import GoogleDrive
-        from fastapi_cloud_drives import GoogleDriveConfig
-
         google_conf = {
-            "CLIENT_ID_JSON": os.path.join(BASE_DIR, 'client_secrets.json'),
+            "CLIENT_ID_JSON": self.JSON_STORAGE('client_secrets.json'),
             "SCOPES": [
                 "https://www.googleapis.com/auth/drive"
             ],
         }
 
         config = GoogleDriveConfig(**google_conf)
-        gdrive = GoogleDrive(config)
+        gdrive = CustomGoogleDriveCloud(config)
+        gdrive.set_custom_path(self.JSON_STORAGE('storage.json'))
 
         resp = await gdrive.create_folder(folder_name=f"_{str(org_id)}")
         return resp

@@ -23,11 +23,6 @@ async def get_user(request: Request):
 
 @user_r.get('/test')
 async def test():
-    from core import BASE_DIR
-    import os
-    handler = google()
-    # await handler.get_organization(7)
-    # upload = handler.upload_file('temp_image/README.md', 'test.md')
-    folder = await handler.create_folder('ini')
-    print(handler.get_files_list())
-    return folder
+    import time
+    time.sleep(5)
+    return 'OK'

@@ -1,0 +1,38 @@
+-- upgrade --
+ALTER TABLE "core_organizations" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 21:31:12.540432';
+ALTER TABLE "core_organizations" ALTER COLUMN "created" SET DEFAULT '2021-12-25 21:31:12.540432';
+ALTER TABLE "glob_users" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 21:31:12.540432';
+ALTER TABLE "glob_users" ALTER COLUMN "created" SET DEFAULT '2021-12-25 21:31:12.540432';
+ALTER TABLE "glob_users" ALTER COLUMN "last_login" SET DEFAULT '2021-12-26 04:31:12.543430';
+ALTER TABLE "core_orders" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 21:31:12.540432';
+ALTER TABLE "core_orders" ALTER COLUMN "created" SET DEFAULT '2021-12-25 21:31:12.540432';
+CREATE TABLE IF NOT EXISTS "core_items" (
+    "id" BIGSERIAL NOT NULL PRIMARY KEY,
+    "is_active" BOOL NOT NULL  DEFAULT True,
+    "created" DATE NOT NULL  DEFAULT '2021-12-25T21:31:12.540432',
+    "modified" DATE NOT NULL  DEFAULT '2021-12-25T21:31:12.540432',
+    "name" VARCHAR(255) NOT NULL,
+    "stock_left" INT NOT NULL,
+    "used_stock" INT NOT NULL,
+    "total_restock" INT NOT NULL,
+    "single_price" DECIMAL(50,2) NOT NULL,
+    "created_by_id" BIGINT NOT NULL REFERENCES "glob_users" ("id") ON DELETE CASCADE,
+    "organization_id" BIGINT NOT NULL REFERENCES "core_organizations" ("id") ON DELETE CASCADE
+);;
+CREATE TABLE IF NOT EXISTS "core_items_pieces" (
+    "id" BIGSERIAL NOT NULL PRIMARY KEY,
+    "is_active" BOOL NOT NULL  DEFAULT True,
+    "created" DATE NOT NULL  DEFAULT '2021-12-25T21:31:12.540432',
+    "restock" INT NOT NULL,
+    "created_by_id" BIGINT NOT NULL REFERENCES "glob_users" ("id") ON DELETE CASCADE,
+    "items_id" BIGINT NOT NULL REFERENCES "core_items" ("id") ON DELETE CASCADE
+);-- downgrade --
+ALTER TABLE "glob_users" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 07:46:24.369524';
+ALTER TABLE "glob_users" ALTER COLUMN "created" SET DEFAULT '2021-12-25 07:46:24.369524';
+ALTER TABLE "glob_users" ALTER COLUMN "last_login" SET DEFAULT '2021-12-25 14:46:24.372524';
+ALTER TABLE "core_orders" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 07:46:24.369524';
+ALTER TABLE "core_orders" ALTER COLUMN "created" SET DEFAULT '2021-12-25 07:46:24.369524';
+ALTER TABLE "core_organizations" ALTER COLUMN "modified" SET DEFAULT '2021-12-25 07:46:24.369524';
+ALTER TABLE "core_organizations" ALTER COLUMN "created" SET DEFAULT '2021-12-25 07:46:24.369524';
+DROP TABLE IF EXISTS "core_items";
+DROP TABLE IF EXISTS "core_items_pieces";

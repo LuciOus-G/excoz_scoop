@@ -1,11 +1,13 @@
 """
 SCOOP PLATFORM ID = E_ESHIER : 21
 """
+from pathlib import Path
+
 from fastapi import FastAPI, Request, Response
 from tortoise.contrib.fastapi import register_tortoise
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace('\\', '/'))
 
 app = FastAPI(
     debug=True
@@ -42,6 +44,7 @@ TORTOISE_ORM = {
             'eshier_scoop.users.models',
             'eshier_scoop.orders.models',
             "aerich.models",
+            'eshier_scoop.items.models',
         ],
             "default_connection": "default",
         },
@@ -134,9 +137,7 @@ g = Globals()
 
 # END SUB-SESSION : g
 
-from eshier_scoop.organizations._helpers import aps
 from eshier_scoop.auth.apis import auth_r
 from eshier_scoop.users.apis import user_r
-app.include_router(aps)
 app.include_router(auth_r)
 app.include_router(user_r)

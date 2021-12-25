@@ -13,6 +13,8 @@ class Users(Model, model.Model, model.TimeMixin):
     origin_scoop = fields.IntField()
     phone_number = fields.CharField(max_length=20, null=True)
     last_login = fields.DateField(default=datetime.now())
+    has_organization = fields.BooleanField(default=True, null=True)
+    error_message = fields.TextField(null=True)
 
     def tortoise_to_pydantic(self):
         _pydantic = pydantic_model_creator(Users, name='Users')

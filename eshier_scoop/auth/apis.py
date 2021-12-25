@@ -5,6 +5,8 @@ import hashlib
 import os
 from pathlib import Path
 from strgen import StringGenerator as SG
+from tortoise.exceptions import DoesNotExist
+
 from eshier_scoop.users.schemas import s_register, s_login
 from eshier_scoop.users.models import Users, User_organization
 # from core import db
@@ -12,17 +14,23 @@ from ._helpers import authHandler, registerFlow
 from eshier_scoop.utils import settings
 from ..helpers.google_drive import google
 from ..organizations.models import Organizations
+from ..utils.error_handling import BadRequest
 
 auth_r = APIRouter(prefix='/eshier/auth', tags=['Authentications'])
 
 
 @auth_r.post('/login')
-async def login(request: Request, cred=Depends(s_login)):
-    _in, _out = Users().tortoise_to_pydantic()
-    user = Users.get(email=cred.email)
-    user_parse = await _in.from_queryset_single(user)
-    handeler = authHandler()
-    is_valid = await handeler.verify_password(cred.password, user_parse)
+async def login(request: Request, cred: s_login):
+    try:
+        _in, _out = Users().tortoise_to_pydantic()
+        user = Users.get(email=cred.email)
+        user_parse = await _in.from_queryset_single(user)
+        handeler = authHandler()
+        is_valid = await handeler.verify_password(cred.password, user_parse)
+    except DoesNotExist as e:
+        raise BadRequest(
+            developer_message=str(e),
+        )
 
     if not user_parse.is_active:
         raise HTTPException(status_code=404, detail='user not found')
@@ -56,19 +64,29 @@ async def register(request: Request, users_data=Depends(s_register.as_form)):
     if new_user:
         try:
             await new_user.save()
-            register_handler = registerFlow(users_data.organization_logo)
-            await register_handler.create_organization(
-                org_name=users_data.organization_name,
-                org_type=users_data.organization_type
-            )
+            try:
+                register_handler = registerFlow(users_data.organization_logo)
+                await register_handler.create_organization(
+                    org_name=users_data.organization_name,
+                    org_type=users_data.organization_type
+                )
 
-            # make relation of user and organization
-            relation_user_org = User_organization(
-                user_id=new_user.id,
-                organization_id=register_handler.ORG_INSTANCE.id
-            )
-            await relation_user_org.save()
+                # make relation of user and organization
+                relation_user_org = User_organization(
+                    user_id=new_user.id,
+                    organization_id=register_handler.ORG_INSTANCE.id
+                )
+                await relation_user_org.save()
+            except Exception as e:
+                new_user.has_organization = False
+                new_user.error_message = e
+                await new_user.save()
+                raise BadRequest(
+                    developer_message=f'{e} ,see the database for error'
+                )
         except Exception as e:
-            print(e)
-            return jsonify({"message": "user already exists with this email"})
+            raise BadRequest(
+                developer_message=e,
+                user_message='User with this email already exists'
+            )
     return new_user

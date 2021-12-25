@@ -109,6 +109,7 @@ class registerFlow(google):
                     await self.upload_photo()
                     break
                 except Exception as e:
+                    print(e)
                     self.PREFIX_LEN += 1
                     continue
             else:
