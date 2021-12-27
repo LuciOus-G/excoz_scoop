@@ -86,7 +86,6 @@ async def register(request: Request, users_data=Depends(s_register.as_form)):
 
 @auth_r.post('/refresh-token')
 async def refresh_token(request: Request):
-    print(type(request.headers))
     previous_token = request.headers.get('Authorization', None).split(' ')[1]
     refresh = await authHandler().jwt_refresh(previous_token)
 
