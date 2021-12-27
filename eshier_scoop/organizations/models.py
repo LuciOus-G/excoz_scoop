@@ -1,4 +1,6 @@
 # from core import Base
+from tortoise.contrib.pydantic import pydantic_model_creator
+
 from eshier_scoop.helpers import model
 from tortoise.models import Model
 from tortoise import fields
@@ -16,6 +18,11 @@ class Organizations(Model, model.Model, model.TimeMixin):
     folder_id = fields.CharField(max_length=255, null=True)
     prefix = fields.CharField(max_length=255, unique=True, null=True)
 
+    def tortoise_to_pydantic(self):
+        _pydantic = pydantic_model_creator(Organizations, name='Organizations')
+        in_pydantic = pydantic_model_creator(Organizations, name='OrganizationsIn', exclude_readonly=True)
+        return _pydantic, in_pydantic
+
     class Meta:
-        table='core_organizations'
+        table = 'core_organizations'
 

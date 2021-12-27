@@ -1,6 +1,7 @@
 import os
 import string
 import random
+import time
 
 import scrypt
 from binascii import hexlify, unhexlify
@@ -14,7 +15,7 @@ from eshier_scoop.users.models import Users, User_organization
 from datetime import datetime, timedelta
 
 from eshier_scoop.utils import settings
-from eshier_scoop.utils.error_handling import Unauthorized
+from eshier_scoop.utils.error_handling import Unauthorized, BadRequest
 from eshier_scoop.helpers.google_drive import google
 
 
@@ -44,24 +45,31 @@ class authHandler(object):
             valid = True
         return valid
 
-    async def jwt_encode_login(self, user):
-        payload = {
-            "exp": datetime.utcnow() + timedelta(minutes=15),
-            "iat": datetime.utcnow(),
-            "user_id": user.id,
-            'user_organizations': await self.get_user_organization(user)
-        }
+    def jwt_encode(self, payload):
         return jwt.encode(
             payload,
             self.secret,
             algorithm='HS256'
         )
 
+    async def jwt_encode_login(self, user):
+        org_user_id = await self.get_user_organization(user)
+        payload = {
+            "exp": datetime.utcnow() + timedelta(minutes=15),
+            "iat": datetime.utcnow(),
+            "user_id": user.id,
+            'eshier_organization': org_user_id.organization_id
+        }
+        return self.jwt_encode(payload)
+
     async def jwt_decode_user(self, request: Request):
-        token = request.headers.get('Authorization', None).split(' ')[1]
         try:
+            token = request.headers.get('Authorization', None).split(' ')[1]
             payload = jwt.decode(token, self.secret, algorithms='HS256')
-            await self.get_user_for_context(payload['user_id'])
+            await self.get_user_for_context(
+                payload.get('user_id', None),
+                payload.get('eshier_organization', None)
+            )
             return payload
         except jwt.ExpiredSignatureError:
             raise Unauthorized(
@@ -69,19 +77,42 @@ class authHandler(object):
                 user_message='your session has been expired'
             )
         except jwt.InvalidTokenError as e:
-            raise Unauthorized
+            raise BadRequest(
+                developer_message="Token signature invalid",
+            )
+        # except AttributeError as e:
+        #     raise BadRequest(
+        #         developer_message=f'{str(e)}, No Authorization been provided',
+        #         user_message='No credential been provided'
+        #     )
 
     async def get_user_organization(self, user):
-        user_org = await User_organization.filter(user_id=user.id).all()
-        org_id = []
-        for data in user_org:
-            org_id.append(data.organization_id)
-        return org_id
+        user_org = User_organization.get(user_id=user.id)
+        _in, _out = User_organization().tortoise_to_pydantic()
+        ret_org = await _out.from_queryset_single(user_org)
+        return ret_org
 
-    async def get_user_for_context(self, user_id):
+    async def get_user_for_context(self, user_id, org_id):
         from core import g
         user_queries = await Users.get(id=user_id)
+        organization_queries = await Organizations.get(id=org_id)
         g.cur_user = user_queries
+        g.cur_org = organization_queries
+
+    async def jwt_refresh(self, encoded):
+        try:
+            new_expired_date = datetime.now() + timedelta(minutes=15)
+            date_now = datetime.now()
+            payload = jwt.decode(encoded, self.secret, algorithms='HS256')
+            payload['iat'] = time.mktime(date_now.timetuple())
+            payload['exp'] = time.mktime(new_expired_date.timetuple())
+            encoded = self.jwt_encode(payload)
+            return encoded
+        except jwt.InvalidTokenError as e:
+            raise BadRequest(
+                developer_message="Token signature invalid",
+            )
+
 
 class registerFlow(google):
     def __init__(self, photo_file):

@@ -9,7 +9,9 @@ from ..organizations.models import Organizations
 user_r = APIRouter(
     prefix='/eshier/user',
     tags=['Users'],
-    # dependencies=[Depends(authHandler().jwt_decode_user)]
+    dependencies=[
+        Depends(authHandler().jwt_decode_user)
+    ]
 )
 
 @user_r.get('/details')

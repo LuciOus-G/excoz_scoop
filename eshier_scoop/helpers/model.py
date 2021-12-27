@@ -14,4 +14,8 @@ class TimeMixin:
 class SoftTimeMixin:
     created = fields.DateField(default=datetime.utcnow())
 
+class SoftModel:
+    id = fields.BigIntField(pk=True)
+
+
 # END DB EXTRAS

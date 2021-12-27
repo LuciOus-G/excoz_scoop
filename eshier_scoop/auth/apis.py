@@ -1,19 +1,11 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder as jsonify
 from binascii import hexlify
-import hashlib
-import os
-from pathlib import Path
-from strgen import StringGenerator as SG
 from tortoise.exceptions import DoesNotExist
 
 from eshier_scoop.users.schemas import s_register, s_login
 from eshier_scoop.users.models import Users, User_organization
-# from core import db
 from ._helpers import authHandler, registerFlow
-from eshier_scoop.utils import settings
-from ..helpers.google_drive import google
-from ..organizations.models import Organizations
 from ..utils.error_handling import BadRequest
 
 auth_r = APIRouter(prefix='/eshier/auth', tags=['Authentications'])
@@ -40,6 +32,7 @@ async def login(request: Request, cred: s_login):
     else:
         base_response = await _out.from_queryset_single(user)
         response = base_response.dict()
+        response['id'] = user_parse.id
         response['access_token'] = await handeler.jwt_encode_login(user_parse)
         response['token_type'] = 'Bearer'
         return jsonify(response)
@@ -90,3 +83,14 @@ async def register(request: Request, users_data=Depends(s_register.as_form)):
                 user_message='User with this email already exists'
             )
     return new_user
+
+@auth_r.post('/refresh-token')
+async def refresh_token(request: Request):
+    print(type(request.headers))
+    previous_token = request.headers.get('Authorization', None).split(' ')[1]
+    refresh = await authHandler().jwt_refresh(previous_token)
+
+    return jsonify({
+        "access_token": refresh,
+        "token_type": 'Bearer'
+    })

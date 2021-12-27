@@ -30,8 +30,8 @@ class User_organization(Model):
     organization = fields.ForeignKeyField('models.Organizations', related_name='organization_user')
 
     def tortoise_to_pydantic(self):
-        _pydantic = pydantic_model_creator(Users, name='UsersId')
-        in_pydantic = pydantic_model_creator(Users, name='UsersIdIn', exclude_readonly=True)
+        _pydantic = pydantic_model_creator(User_organization, name='UsersId')
+        in_pydantic = pydantic_model_creator(User_organization, name='UsersIdIn', exclude_readonly=True)
         return _pydantic, in_pydantic
 
     class Meta:

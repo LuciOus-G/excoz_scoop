@@ -39,13 +39,12 @@ TORTOISE_ORM = {
     "apps": {
         "models": {
             "models": [
-            # 'auth.models',
-            'eshier_scoop.organizations.models',
-            'eshier_scoop.users.models',
-            'eshier_scoop.orders.models',
-            "aerich.models",
-            'eshier_scoop.items.models',
-        ],
+                'eshier_scoop.organizations.models',
+                'eshier_scoop.users.models',
+                'eshier_scoop.orders.models',
+                "aerich.models",
+                'eshier_scoop.items.models',
+            ],
             "default_connection": "default",
         },
     },
@@ -57,11 +56,11 @@ register_tortoise(
     generate_schemas=True,
     modules={
         'models': [
-            # 'auth.models',
-            # 'eshier_scoop.orders.models',
+            'eshier_scoop.organizations.models',
             'eshier_scoop.users.models',
             'eshier_scoop.orders.models',
-            "aerich.models"
+            "aerich.models",
+            'eshier_scoop.items.models',
         ]
     }
 )
@@ -137,7 +136,12 @@ g = Globals()
 
 # END SUB-SESSION : g
 
-from eshier_scoop.auth.apis import auth_r
-from eshier_scoop.users.apis import user_r
-app.include_router(auth_r)
-app.include_router(user_r)
+def eshier_routes():
+    from eshier_scoop.auth.apis import auth_r
+    from eshier_scoop.users.apis import user_r
+    from eshier_scoop.items.apis import items_r
+    app.include_router(auth_r)
+    app.include_router(user_r)
+    app.include_router(items_r)
+
+eshier_routes()
