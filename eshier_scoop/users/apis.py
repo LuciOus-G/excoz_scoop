@@ -16,10 +16,9 @@ user_r = APIRouter(
 
 @user_r.get('/details')
 async def get_user(request: Request):
-    print(g.cur_user.id)
-    data_user = Users.all()
+    data_user = Users.get(id=g.cur_user.id)
     _in, _out = Users().tortoise_to_pydantic()
-    response = await _in.from_queryset(data_user)
+    response = await _in.from_queryset_single(data_user)
     return jsonify(response)
 
 

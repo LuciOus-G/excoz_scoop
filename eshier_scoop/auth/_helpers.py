@@ -100,18 +100,18 @@ class authHandler(object):
         g.cur_org = organization_queries
 
     async def jwt_refresh(self, encoded):
-        try:
-            new_expired_date = datetime.now() + timedelta(minutes=15)
-            date_now = datetime.now()
-            payload = jwt.decode(encoded, self.secret, algorithms='HS256')
-            payload['iat'] = time.mktime(date_now.timetuple())
-            payload['exp'] = time.mktime(new_expired_date.timetuple())
-            encoded = self.jwt_encode(payload)
-            return encoded
-        except jwt.InvalidTokenError as e:
-            raise BadRequest(
-                developer_message="Token signature invalid",
-            )
+        # try:
+        new_expired_date = datetime.now() + timedelta(minutes=15)
+        date_now = datetime.now()
+        payload = jwt.decode(encoded, self.secret, algorithms='HS256')
+        payload['iat'] = time.mktime(date_now.timetuple())
+        payload['exp'] = time.mktime(new_expired_date.timetuple())
+        encoded = self.jwt_encode(payload)
+        return encoded
+        # except jwt.InvalidTokenError as e:
+        #     raise BadRequest(
+        #         developer_message="Token signature invalid",
+        #     )
 
 
 class registerFlow(google):
