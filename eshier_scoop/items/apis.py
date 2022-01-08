@@ -2,7 +2,7 @@ import time
 
 from fastapi import APIRouter, Request, Depends
 from fastapi.encoders import jsonable_encoder as jsonify
-from .schemas import NewStocksitem
+from .schemas import NewStocksitem, EditStocksItems
 from .models import Items, ItemsPieces
 from core import g
 from eshier_scoop.auth._helpers import authHandler
@@ -20,8 +20,6 @@ items_r = APIRouter(
 @items_r.post('/new')
 async def post_new_stock(request: Request, item: NewStocksitem):
     all_data = []
-    print(item.data)
-    time.sleep(5)
     for items in item.data:
         new_item = Items(
             name=items['name'],
@@ -46,12 +44,14 @@ async def post_new_stock(request: Request, item: NewStocksitem):
         "new_item": all_data
     })
 
+@items_r.put('{item_id}')
+async def edit_items(request: Request, item_id ,edited: EditStocksItems):
+    pass
+
 @items_r.post('/news',)
 async def get_items_stock(request: Request):
     items = await Items.get(id=4)
-    print(items.created_by)
     _in, _out = Organizations().tortoise_to_pydantic()
-    print(await _in.from_queryset_single(items.organization))
     return {**items.created_by}
 
 @items_r.get('/{org_id}')

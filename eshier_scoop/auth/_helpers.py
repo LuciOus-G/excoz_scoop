@@ -9,6 +9,8 @@ from fastapi.security import HTTPBearer
 from passlib.context import CryptContext
 from fastapi import Request
 import jwt
+from fastapi.encoders import jsonable_encoder as jsonify
+from scrypt.scrypt import error
 
 from eshier_scoop.organizations.models import Organizations
 from eshier_scoop.users.models import Users, User_organization
@@ -20,9 +22,13 @@ from eshier_scoop.helpers.google_drive import google
 
 
 class authHandler(object):
-    security = HTTPBearer()
-    pwd_context = CryptContext(schemes=['scrypt'], deprecated="auto")
-    secret = 'iniadalahkatakunci'
+    def __init__(self):
+        self.security = HTTPBearer()
+        self.pwd_context = CryptContext(schemes=['scrypt'], deprecated="auto")
+        self.secret = 'iniadalahkatakunci'
+        self.secret_refresh = 'iniadalahkatakuncirefresh'
+        self.scrypt_secret = 'iniadalahkatakuncirefreshscrypt'
+        self.spliter = '90d3eae0c8165ffdc20'
 
     def salt_generator(self):
         salt = os.urandom(32)
@@ -45,12 +51,33 @@ class authHandler(object):
             valid = True
         return valid
 
+    def jwt_encode_refresh(self, payload):
+        token = jwt.encode(
+            payload,
+            self.secret_refresh,
+            algorithm='HS256'
+        )
+        encrypted_token = scrypt.encrypt(token, self.scrypt_secret, maxtime=0.1)
+        hexed_token = f'{hexlify(encrypted_token).decode()}54a1e50b0567435'
+        return hexed_token
+
     def jwt_encode(self, payload):
         return jwt.encode(
             payload,
             self.secret,
             algorithm='HS256'
         )
+
+    async def jwt_encode_login_refresh(self, user):
+        org_user_id = await self.get_user_organization(user)
+        payload = {
+            "exp": datetime.utcnow() + timedelta(days=90),
+            "iat": datetime.utcnow(),
+            "user_id": user.id,
+            'eshier_organization': org_user_id.organization_id
+        }
+        token = self.jwt_encode_refresh(payload)
+        return token
 
     async def jwt_encode_login(self, user):
         org_user_id = await self.get_user_organization(user)
@@ -102,17 +129,33 @@ class authHandler(object):
     async def jwt_refresh(self, encoded):
         # try:
         new_expired_date = datetime.now() + timedelta(minutes=15)
+        new_refresh_expired_date = datetime.now() + timedelta(days=90)
         date_now = datetime.now()
-        payload = jwt.decode(encoded, self.secret, algorithms='HS256')
+
+        get_code = encoded.split(self.spliter)[0]
+        unhexes = unhexlify(get_code)
+        decryted = scrypt.decrypt(unhexes, self.scrypt_secret, maxtime=1)
+        print(decryted)
+        payload = jwt.decode(decryted, self.secret_refresh, algorithms='HS256')
+
+        # create 5 minute token
         payload['iat'] = time.mktime(date_now.timetuple())
         payload['exp'] = time.mktime(new_expired_date.timetuple())
         encoded = self.jwt_encode(payload)
-        return encoded
-        # except jwt.InvalidTokenError as e:
-        #     raise BadRequest(
-        #         developer_message="Token signature invalid",
-        #     )
 
+        # recreate new refresh token
+        payload['exp'] = new_refresh_expired_date
+        new_refresh_token = self.jwt_encode_refresh(payload)
+
+        return jsonify({
+            "access_token": encoded,
+            "refresh_token": new_refresh_token,
+            "token_type": "Bearer"
+        })
+        # except Exception as e:
+        #     raise BadRequest(
+        #         developer_message='token signature Invalid',
+        #     )
 
 class registerFlow(google):
     def __init__(self, photo_file):

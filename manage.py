@@ -8,7 +8,7 @@ except ImportError as exc:
 
 
 def execute(options):
-    host = "localhost"
+    host = "192.176.145.49"
     port = 5000
     uvicorn.run("core:app", host=host, port=port, reload=True)
 

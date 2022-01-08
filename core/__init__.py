@@ -12,6 +12,15 @@ BASE_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))).repl
 app = FastAPI(
     debug=True
 )
+
+@app.get('/test')
+def test():
+    return {
+        "bapuck2baju partai": "bangsat kau",
+        "dj kecil": "okey lesgooo"
+    }
+
+
 # set up custom error handling
 class UnicornException(Exception):
     def __init__(self, developer_message: str, user_message: str, status_code=500):

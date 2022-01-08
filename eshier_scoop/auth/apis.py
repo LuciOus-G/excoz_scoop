@@ -34,6 +34,7 @@ async def login(request: Request, cred: s_login):
         response = base_response.dict()
         response['id'] = user_parse.id
         response['access_token'] = await handeler.jwt_encode_login(user_parse)
+        response['refresh_token'] = await handeler.jwt_encode_login_refresh(user_parse)
         response['token_type'] = 'Bearer'
         return jsonify(response)
 
@@ -86,10 +87,7 @@ async def register(request: Request, users_data=Depends(s_register.as_form)):
 
 @auth_r.post('/refresh-token')
 async def refresh_token(request: Request):
-    previous_token = request.headers.get('Authorization', None).split(' ')[1]
-    refresh = await authHandler().jwt_refresh(previous_token)
+    previous_token = await request.json()
+    refresh = await authHandler().jwt_refresh(previous_token.get('token', None))
 
-    return jsonify({
-        "access_token": refresh,
-        "token_type": 'Bearer'
-    })
+    return refresh
