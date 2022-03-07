@@ -31,8 +31,10 @@ async def login(request: Request, cred: s_login):
         raise HTTPException(status_code=401, detail='username or pw wrong')
     else:
         base_response = await _out.from_queryset_single(user)
+        org_id = await handeler.get_user_organization(user_parse)
         response = base_response.dict()
         response['id'] = user_parse.id
+        response['org_id'] = org_id.organization_id
         response['access_token'] = await handeler.jwt_encode_login(user_parse)
         response['refresh_token'] = await handeler.jwt_encode_login_refresh(user_parse)
         response['token_type'] = 'Bearer'

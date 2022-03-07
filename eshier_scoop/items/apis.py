@@ -2,6 +2,8 @@ import time
 
 from fastapi import APIRouter, Request, Depends
 from fastapi.encoders import jsonable_encoder as jsonify
+from tortoise.query_utils import Q
+
 from .schemas import NewStocksitem, EditStocksItems
 from .models import Items, ItemsPieces
 from core import g
@@ -56,6 +58,36 @@ async def get_items_stock(request: Request):
 
 @items_r.get('/{org_id}')
 async def get_item(request: Request, org_id):
-    item = await Items.filter(organization_id=org_id).all()
-    return item
+    default_limit = 25
+    offset = int(request.query_params.get("offset", 0))
+    search = request.query_params.get("q", '')
+
+    item = Items.filter(name__icontains=search, organization_id=org_id)
+    counted_data = await item.count()
+    all_data = await item.limit(default_limit).offset(offset)
+    pages = (counted_data / default_limit)
+
+    ## offset - limit of data
+    current_page = int(offset / default_limit) + 1
+
+    # make page from all data
+    if pages.is_integer():
+        page = int(pages)
+    else:
+        page = int(pages + 1)
+
+    # set max item
+    if counted_data > default_limit:
+        counted_data = (default_limit * int(pages))
+
+    return jsonify({
+        "data": all_data,
+        "metadata": {
+            "offset": offset,
+            "limit": default_limit,
+            "pages": page,
+            "current_page": current_page,
+            "max_item": counted_data
+        }
+    })
 

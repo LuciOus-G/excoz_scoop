@@ -28,7 +28,7 @@ class authHandler(object):
         self.secret = 'iniadalahkatakunci'
         self.secret_refresh = 'iniadalahkatakuncirefresh'
         self.scrypt_secret = 'iniadalahkatakuncirefreshscrypt'
-        self.spliter = '90d3eae0c8165ffdc20'
+        self.spliter = '90d3eae0c8165ffdc20='
 
     def salt_generator(self):
         salt = os.urandom(32)
@@ -58,7 +58,7 @@ class authHandler(object):
             algorithm='HS256'
         )
         encrypted_token = scrypt.encrypt(token, self.scrypt_secret, maxtime=0.1)
-        hexed_token = f'{hexlify(encrypted_token).decode()}54a1e50b0567435'
+        hexed_token = f'{hexlify(encrypted_token).decode()}54a1e50b0567435='
         return hexed_token
 
     def jwt_encode(self, payload):

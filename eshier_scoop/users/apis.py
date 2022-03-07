@@ -24,6 +24,4 @@ async def get_user(request: Request):
 
 @user_r.get('/test')
 async def test():
-    import time
-    time.sleep(5)
     return 'OK'
