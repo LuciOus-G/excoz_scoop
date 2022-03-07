@@ -1,15 +1,26 @@
 """
-SCOOP PLATFORM ID = W_ESHIER 21
+SCOOP PLATFORM ID = E_ESHIER : 21
 """
+from pathlib import Path
+
 from fastapi import FastAPI, Request, Response
 from tortoise.contrib.fastapi import register_tortoise
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))).replace('\\', '/'))
 
 app = FastAPI(
     debug=True
 )
+
+@app.get('/test')
+def test():
+    return {
+        "bapuck2baju partai": "bangsat kau",
+        "dj kecil": "okey lesgooo"
+    }
+
+
 # set up custom error handling
 class UnicornException(Exception):
     def __init__(self, developer_message: str, user_message: str, status_code=500):
@@ -37,12 +48,12 @@ TORTOISE_ORM = {
     "apps": {
         "models": {
             "models": [
-            # 'auth.models',
-            'eshier_scoop.organizations.models',
-            'eshier_scoop.users.models',
-            'eshier_scoop.orders.models',
-            "aerich.models",
-        ],
+                'eshier_scoop.organizations.models',
+                'eshier_scoop.users.models',
+                'eshier_scoop.orders.models',
+                "aerich.models",
+                'eshier_scoop.items.models',
+            ],
             "default_connection": "default",
         },
     },
@@ -54,11 +65,11 @@ register_tortoise(
     generate_schemas=True,
     modules={
         'models': [
-            # 'auth.models',
-            # 'eshier_scoop.orders.models',
+            'eshier_scoop.organizations.models',
             'eshier_scoop.users.models',
             'eshier_scoop.orders.models',
-            "aerich.models"
+            "aerich.models",
+            'eshier_scoop.items.models',
         ]
     }
 )
@@ -134,9 +145,12 @@ g = Globals()
 
 # END SUB-SESSION : g
 
-from eshier_scoop.organizations._helpers import aps
-from eshier_scoop.auth.apis import auth_r
-from eshier_scoop.users.apis import user_r
-app.include_router(aps)
-app.include_router(auth_r)
-app.include_router(user_r)
+def eshier_routes():
+    from eshier_scoop.auth.apis import auth_r
+    from eshier_scoop.users.apis import user_r
+    from eshier_scoop.items.apis import items_r
+    app.include_router(auth_r)
+    app.include_router(user_r)
+    app.include_router(items_r)
+
+eshier_routes()

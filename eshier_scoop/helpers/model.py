@@ -11,4 +11,11 @@ class TimeMixin:
     created = fields.DateField(default=datetime.utcnow())
     modified = fields.DateField(default=datetime.utcnow())
 
+class SoftTimeMixin:
+    created = fields.DateField(default=datetime.utcnow())
+
+class SoftModel:
+    id = fields.BigIntField(pk=True)
+
+
 # END DB EXTRAS

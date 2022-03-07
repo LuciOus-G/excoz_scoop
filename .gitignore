@@ -10,6 +10,7 @@ __pycache__/
 .Python
 build/
 develop-eggs/
+temp_image/
 dist/
 downloads/
 eggs/
@@ -56,6 +57,7 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
+storage.json
 db.sqlite3
 
 # Flask stuff:
@@ -112,6 +114,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+*.json
 
 # Pyre type checker
 .pyre/
